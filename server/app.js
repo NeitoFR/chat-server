@@ -1,8 +1,8 @@
 "use strict"
 //require
 require('dotenv').config();
-
-var http = require('http'),
+var moment = require('moment'),
+    http = require('http'),
     server = http.createServer().listen(process.env.APP_PORT, function () { console.log('Server listening on port : ' + process.env.APP_PORT) }),
     io = require('socket.io').listen(server);
 
@@ -15,15 +15,15 @@ io.sockets.on('connection', function (socket) {
         users.push({ username: socket.username });
         _sendUserList();
     })
+    socket.on('new-message', function (message) {
+        message.timestamp = moment(message.timestamp).format('HH:mm:ss');
+        io.emit('message2all', message);
+    });
 });
 
 io.sockets.on('connect_timeout', function (message) {
     console.log('**** Timed OUT ', message);
-})
-
-// server.listen(process.env.APP_PORT, function () {
-//     console.log('Server listening on port : ' + process.env.APP_PORT);
-// });
+});
 
 function _sendUserList() {
     io.emit('userlist', users);
